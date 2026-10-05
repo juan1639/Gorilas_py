@@ -35,8 +35,10 @@ BUILDING_MIN_W = 70
 BUILDING_MAX_W = 110
 BUILDING_MIN_H = 100
 BUILDING_MAX_H = 360
-GORILLA_W = 28
-GORILLA_H = 40
+#GORILLA_W = 28
+GORILLA_W = 42
+#GORILLA_H = 40
+GORILLA_H = 60
 
 SKY_COLOR = (15, 20, 55)
 BUILDING_COLORS = [(110, 110, 130), (150, 80, 80), (80, 130, 140), (130, 130, 90)]
@@ -46,6 +48,7 @@ GORILLA_COLORS = [(170, 110, 60), (120, 150, 210)]
 BANANA_COLOR = (255, 235, 60)
 TEXT_COLOR = (240, 240, 240)
 ACTIVE_COLOR = (255, 235, 60)
+P2_COLOR = (130, 200, 30)
 DIM_COLOR = (150, 150, 170)
 FLAG_COLOR = (230, 70, 70)
 
@@ -81,13 +84,21 @@ def draw_building(surface, rect, color):
             pygame.draw.rect(surface, WINDOW_ON if lit else WINDOW_OFF, (wx, wy, 8, 12))
 
 # ========================================================
-def draw_gorilla(surface, rect, color):
-    pygame.draw.rect(surface, color, (rect.left + 4, rect.top + 14, rect.width - 8, rect.height - 14))
-    pygame.draw.rect(surface, color, (rect.left + 7, rect.top, rect.width - 14, 14))
-    pygame.draw.rect(surface, color, (rect.left, rect.top + 14, 6, 20))
-    pygame.draw.rect(surface, color, (rect.right - 6, rect.top + 14, 6, 20))
-    pygame.draw.rect(surface, SKY_COLOR, (rect.left + 10, rect.top + 4, 3, 3))
-    pygame.draw.rect(surface, SKY_COLOR, (rect.right - 13, rect.top + 4, 3, 3))
+def cargar_img(img_to_load, size_x, size_y):
+    # Carga la imagen (asegúrate de que el archivo esté en la misma carpeta o ruta correcta)
+    imagen_original = pygame.image.load(img_to_load).convert_alpha()
+    
+    # Redimensiona la imagen para que quepa exactamente en el rectángulo de tu sprite
+    image = pygame.transform.scale(imagen_original, (size_x, size_y))
+    image.set_colorkey((5, 5, 5))
+
+    return image
+
+# ========================================================
+def draw_gorilla(surface, sprite):
+    # Reemplaza las 4 líneas de pygame.draw.rect por esta:
+    print(f"Gorila_rect: {sprite[1]}")
+    surface.blit(sprite[0], sprite[1])
 
 # ========================================================
 def draw_banana(surface, pos, t):
@@ -121,8 +132,11 @@ def draw_wind_flag(surface, font, wind):
 
 # ========================================================
 def circle_hits_rect(center, radius, rect):
-    cx = max(rect.left, min(center[0], rect.right))
-    cy = max(rect.top, min(center[1], rect.bottom))
+    # Convert simple tuple in pygame.rect:
+    g_rect = pygame.Rect(rect[1][0], rect[1][1], GORILLA_W, GORILLA_H)
+
+    cx = max(g_rect.left, min(center[0], g_rect.right))
+    cy = max(g_rect.top, min(center[1], g_rect.bottom))
     return (center[0] - cx) ** 2 + (center[1] - cy) ** 2 <= radius ** 2
 
 # ========================================================
@@ -142,10 +156,17 @@ class Game:
         self.city, self.buildings = build_city()
         left = [b for b in self.buildings if b.centerx < WIDTH * 0.45]
         right = [b for b in self.buildings if b.centerx > WIDTH * 0.55]
+
+        self.gorila_sprite = cargar_img("img/gorila_sprite.png", GORILLA_W, GORILLA_H)
         self.gorillas = []
+
         for b in (random.choice(left), random.choice(right)):
             cx = random.randint(b.left + GORILLA_W // 2 + 4, b.right - GORILLA_W // 2 - 4)
-            self.gorillas.append(pygame.Rect(cx - GORILLA_W // 2, b.top - GORILLA_H, GORILLA_W, GORILLA_H))
+            gorila_rect = self.gorila_sprite.get_rect()
+            gorila_rect = (cx, b.top - GORILLA_H)
+            #self.gorillas.append(pygame.Rect(cx - GORILLA_W // 2, b.top - GORILLA_H, GORILLA_W, GORILLA_H))
+            self.gorillas.append((self.gorila_sprite, gorila_rect))
+        
         self.wind = random.choice([w for w in range(-MAX_WIND, MAX_WIND + 1) if w != 0])
         self.hits = []
         self.fields = [["", ""], ["", ""]]
@@ -169,10 +190,13 @@ class Game:
             if event.key == pygame.K_SPACE:
                 self.__init__()
             return
+        
         if self.phase not in ("angle", "speed"):
             return
+        
         idx = 0 if self.phase == "angle" else 1
         text = self.fields[self.current][idx]
+
         if event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
             self.submit(idx)
         elif event.key == pygame.K_BACKSPACE:
@@ -183,15 +207,20 @@ class Game:
     # ------------------------------------------------
     def submit(self, idx):
         text = self.fields[self.current][idx]
+
         if not text:
             return
+        
         lo, hi = ANGLE_RANGE if idx == 0 else SPEED_RANGE
         value = int(text)
+
         if not lo <= value <= hi:
             self.message = f"Introduce un valor entre {lo} y {hi}"
             self.fields[self.current][idx] = ""
             return
+        
         self.message = ""
+
         if idx == 0:
             self.phase = "speed"
         else:
@@ -203,8 +232,9 @@ class Game:
         speed = int(self.fields[self.current][1])
         gorilla = self.gorillas[self.current]
         direction = 1 if self.current == 0 else -1
-        self.bx = float(gorilla.centerx)
-        self.by = float(gorilla.top - 6)
+        #self.bx = float(gorilla[1][0].centerx)
+        self.bx = float(gorilla[1][0])
+        self.by = float(gorilla[1][1])
         self.bvx = direction * speed * math.cos(angle) * PPM
         self.bvy = -speed * math.sin(angle) * PPM
         self.btime = 0.0
@@ -213,6 +243,7 @@ class Game:
     # ------------------------------------------------
     def step_banana(self, dt):
         remaining = dt
+
         while remaining > 0 and self.phase == "flying":
             h = min(SUBSTEP, remaining)
             remaining -= h
@@ -228,15 +259,23 @@ class Game:
         if self.bx < 0 or self.bx >= WIDTH or self.by >= HEIGHT:
             self.end_turn()
             return
+        
         if self.by < 0:
             return
+        
         point = (int(self.bx), int(self.by))
+
         for i, gorilla in enumerate(self.gorillas):
+            # Convert simple tuple in pygame.rect:
+            gorilla_rect = pygame.Rect(gorilla[1][0], gorilla[1][1], GORILLA_W, GORILLA_H)
+
             if i == self.current and self.btime < SELF_GRACE:
                 continue
-            if gorilla.collidepoint(point):
+
+            if gorilla_rect.collidepoint(point):
                 self.explode(point)
                 return
+            
         if self.city.get_at(point)[3] > 0:
             self.explode(point)
 
@@ -253,6 +292,7 @@ class Game:
         if not self.hits:
             self.end_turn()
             return
+        
         if len(self.hits) == 2:
             self.round_winner = None
             self.round_text = "Empate: se repite la ronda"
@@ -260,6 +300,7 @@ class Game:
             self.round_winner = 1 - self.hits[0]
             self.scores[self.round_winner] += 1
             self.round_text = f"Jugador {self.round_winner + 1} gana la ronda"
+        
         self.timer = 0.0
         self.phase = "round_over"
 
@@ -305,7 +346,7 @@ class Game:
             if player == 0:
                 surface.blit(img, (15, 10 + i * 24))
             else:
-                surface.blit(img, img.get_rect(topright=(WIDTH - 15, 10 + i * 24)))
+                surface.blit(img, img.get_rect(topright=(WIDTH - 20, 10 + i * 24)))
 
     # ------------------------------------------------
     def draw(self, surface, font, big_font):
@@ -314,7 +355,8 @@ class Game:
 
         for i, gorilla in enumerate(self.gorillas):
             if i not in self.hits:
-                draw_gorilla(surface, gorilla, GORILLA_COLORS[i])
+                #draw_gorilla(surface, gorilla, GORILLA_COLORS[i])
+                draw_gorilla(surface, gorilla)
         
         if self.phase == "flying" and self.by > -200:
             draw_banana(surface, (self.bx, self.by), self.btime)
@@ -325,7 +367,7 @@ class Game:
         draw_wind_flag(surface, font, self.wind)
         self.draw_player_panel(surface, font, 0)
         self.draw_player_panel(surface, font, 1)
-        score = f"Ronda {self.round}   J1 {self.scores[0]} - {self.scores[1]} J2"
+        score = f"[ Ronda {self.round} ]    Jugador_1  [ {self.scores[0]} - {self.scores[1]} ]  Jugador_2"
         draw_centered(surface, font, score, 18)
 
         if self.phase == "angle":
@@ -349,7 +391,7 @@ class Game:
 def main():
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("Gorillas")
+    pygame.display.set_caption("Gorillas_py  |  By Juan Eguia, 2026")
     clock = pygame.time.Clock()
     font = pygame.font.Font(None, 28)
     big_font = pygame.font.Font(None, 64)
