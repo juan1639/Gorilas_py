@@ -13,8 +13,8 @@ import sys
 #   CONSTANTS
 #  
 # ========================================================
-WIDTH = 1000
-HEIGHT = 600
+WIDTH = 1200
+HEIGHT = 700
 FPS = 60
 
 PPM = 10
@@ -40,6 +40,9 @@ GORILLA_W = 42
 #GORILLA_H = 40
 GORILLA_H = 60
 
+ARLEKIN_H = 68
+ARLEKIN_W = 180
+
 SKY_COLOR = (15, 20, 55)
 BUILDING_COLORS = [(110, 110, 130), (150, 80, 80), (80, 130, 140), (130, 130, 90)]
 WINDOW_ON = (250, 220, 90)
@@ -51,6 +54,8 @@ ACTIVE_COLOR = (255, 235, 60)
 P2_COLOR = (130, 200, 30)
 DIM_COLOR = (150, 150, 170)
 FLAG_COLOR = (230, 70, 70)
+ARLEKIN_COLOR = (200, 201, 202)
+ARLEKIN_COLOR_FONT = (160, 0, 0)
 
 # ========================================================
 #   DECLARE FUNCTIONS
@@ -73,11 +78,15 @@ def build_city():
         buildings.append(rect)
         x += w
     
+    pygame.draw.rect(surface, ARLEKIN_COLOR, (WIDTH // 2 - ARLEKIN_W // 2, HEIGHT - ARLEKIN_H, ARLEKIN_W, ARLEKIN_H))
+    draw_centered(surface, pygame.font.Font(None, 32), " Cafetería ", HEIGHT - ARLEKIN_H + 20, ARLEKIN_COLOR_FONT)
+    draw_centered(surface, pygame.font.Font(None, 32), " A R L E K Í N ", HEIGHT - ARLEKIN_H + 46, ARLEKIN_COLOR_FONT)
     return surface, buildings
 
 # ========================================================
 def draw_building(surface, rect, color):
     pygame.draw.rect(surface, color, rect)
+
     for wx in range(rect.left + 8, rect.right - 14, 18):
         for wy in range(rect.top + 10, HEIGHT - 20, 24):
             lit = random.random() < 0.6
