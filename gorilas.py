@@ -28,8 +28,9 @@ SUBSTEP = 1 / 240
 SELF_GRACE = 0.25
 
 ROUNDS_TO_WIN = 2
-ROUND_PAUSE = 2.5
+ROUND_PAUSE = 9
 EXPLOSION_TIME = 0.5
+FIGHT_TEXT_TIME = 2.1
 CRATER_R = 24
 
 BUILDING_MIN_W = 70
@@ -57,6 +58,7 @@ DIM_COLOR = (150, 150, 170)
 FLAG_COLOR = (230, 70, 70)
 ARLEKIN_COLOR = (200, 201, 202)
 ARLEKIN_COLOR_FONT = (160, 0, 0)
+BLACK_COLOR = (9, 9, 9)
 
 # ========================================================
 #   DECLARE FUNCTIONS
@@ -165,10 +167,11 @@ def resource_path(relative_path):
 class Game:
     def __init__(self):
         self.sonidos = Sonidos()
+        self.flag_fight_text = False
         self.scores = [0, 0]
         self.round = 1
         self.new_round()
-
+    
     # ------------------------------------------------
     def new_round(self):
         self.city, self.buildings = build_city()
@@ -332,7 +335,14 @@ class Game:
 
     # ------------------------------------------------
     def update(self, dt):
-        if self.phase == "flying":
+        if self.phase == "angle" or self.phase == "speed":
+            self.timer += dt
+
+            if self.timer >= FIGHT_TEXT_TIME:
+                self.timer = 0.0
+                self.flag_fight_text = True
+        
+        elif self.phase == "flying":
             self.step_banana(dt)
         
         elif self.phase == "exploding":
@@ -397,6 +407,9 @@ class Game:
         score = f"[ Ronda {self.round} ]    Jugador_1  [ {self.scores[0]} - {self.scores[1]} ]  Jugador_2"
         draw_centered(surface, font, score, 18)
 
+        if not self.flag_fight_text:
+            draw_centered(surface, pygame.font.Font(None, 96), " Fight! ", HEIGHT // 3, P2_COLOR)
+
         if self.phase == "angle":
             draw_centered(surface, font, f"Jugador {self.current + 1}: introduce el ángulo (0-90) y pulsa Enter", 150, ACTIVE_COLOR)
         elif self.phase == "speed":
@@ -408,6 +421,7 @@ class Game:
         if self.phase == "round_over":
             draw_centered(surface, big_font, self.round_text, HEIGHT // 2 - 40)
         elif self.phase == "match_over":
+            pygame.draw.rect(surface, BLACK_COLOR, (WIDTH // 2 - WIDTH // 3, HEIGHT // 2 - HEIGHT // 4, WIDTH // 1.5, HEIGHT // 2))
             draw_centered(surface, big_font, f"¡Jugador {self.round_winner + 1} gana la partida!", HEIGHT // 2 - 50)
             draw_centered(surface, font, f"Marcador final: {self.scores[0]} - {self.scores[1]}", HEIGHT // 2)
             draw_centered(surface, font, "Espacio para jugar de nuevo", HEIGHT // 2 + 35)
