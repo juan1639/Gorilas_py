@@ -106,8 +106,7 @@ def cargar_img(img_to_load, size_x, size_y):
 
 # ========================================================
 def draw_gorilla(surface, sprite):
-    # Reemplaza las 4 líneas de pygame.draw.rect por esta:
-    print(f"Gorila_rect: {sprite[1]}")
+    #print(f"Gorila_rect: {sprite[1]}")
     surface.blit(sprite[0], sprite[1])
 
 # ========================================================
@@ -297,10 +296,12 @@ class Game:
                 continue
 
             if gorilla_rect.collidepoint(point):
+                self.sonidos.reproducir("explosion")
                 self.explode(point)
                 return
             
         if self.city.get_at(point)[3] > 0:
+            self.sonidos.reproducir("explosion")
             self.explode(point)
 
     # ------------------------------------------------
@@ -324,6 +325,7 @@ class Game:
             self.round_winner = 1 - self.hits[0]
             self.scores[self.round_winner] += 1
             self.round_text = f"Jugador {self.round_winner + 1} gana la ronda"
+            self.sonidos.reproducir("aplausos")
         
         self.timer = 0.0
         self.phase = "round_over"
@@ -346,6 +348,7 @@ class Game:
                 if self.round_winner is None:
                     self.new_round()
                 elif self.scores[self.round_winner] >= ROUNDS_TO_WIN:
+                    self.sonidos.reproducir("fireworks")
                     self.phase = "match_over"
                 else:
                     self.round += 1
