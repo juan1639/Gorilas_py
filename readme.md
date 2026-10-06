@@ -9,8 +9,8 @@
 
 ---
 
-<img src="gorilas_1.png" alt="game img"/>
-<img src="gorilas_2.png" alt="game img"/>
+<img src="img/gorilas_1.png" alt="game img"/>
+<img src="img/gorilas_2.png" alt="game img"/>
 
 ---
 
@@ -18,7 +18,12 @@
 Gorilas/
 ├── img/                            # Assets gráficos
 ├── audio/                          # Assets de audio
-├── gorilas.py                      # Archivo python con todo el juego
+├── gorilas.py                      # Archivo python con todo el juego en un solo archivo
+├── main.py                         # función main y main_loop
+├── constants.py                    # Constantes
+├── class_game.py                   # Clase Game
+├── class_sonidos.py                # Clase con los sonidos en un dict
+├── functions.py                    # Funciones que no pertenecen a ninguna clase
 ```
 
 ---
