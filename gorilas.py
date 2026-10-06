@@ -187,7 +187,9 @@ class Game:
             gorila_rect = (cx, b.top - GORILLA_H)
             #self.gorillas.append(pygame.Rect(cx - GORILLA_W // 2, b.top - GORILLA_H, GORILLA_W, GORILLA_H))
             self.gorillas.append((self.gorila_sprite, gorila_rect))
-        
+
+        self.sonidos.reproducir("fight")
+        self.flag_fight_text = False
         self.wind = random.choice([w for w in range(-MAX_WIND, MAX_WIND + 1) if w != 0])
         self.hits = []
         self.fields = [["", ""], ["", ""]]
@@ -423,7 +425,7 @@ class Game:
         elif self.phase == "match_over":
             pygame.draw.rect(surface, BLACK_COLOR, (WIDTH // 2 - WIDTH // 3, HEIGHT // 2 - HEIGHT // 4, WIDTH // 1.5, HEIGHT // 2))
             draw_centered(surface, big_font, f"¡Jugador {self.round_winner + 1} gana la partida!", HEIGHT // 2 - 50)
-            draw_centered(surface, font, f"Marcador final: {self.scores[0]} - {self.scores[1]}", HEIGHT // 2)
+            draw_centered(surface, font, f"Marcador final:  {self.scores[0]} - {self.scores[1]}", HEIGHT // 2)
             draw_centered(surface, font, "Espacio para jugar de nuevo", HEIGHT // 2 + 35)
 
 # ====================================================================================
@@ -442,7 +444,8 @@ class Sonidos:
             "head-shot": self.cargar_sonido(resource_path("audio/head-shot.mp3"), 0.7),
             "key": self.cargar_sonido(resource_path("audio/key.wav"), 0.8),
             "numkey": self.cargar_sonido(resource_path("audio/numkey.wav"), 0.8),
-            "explosion": self.cargar_sonido(resource_path("audio/sonido-explo-granada.mp3"), 0.7)
+            "explosion": self.cargar_sonido(resource_path("audio/sonido-explo-granada.mp3"), 0.7),
+            "fight": self.cargar_sonido(resource_path("audio/fight-deep-voice.mp3"), 0.9)
         }
     
     # -------------------------------------------------------------------------
