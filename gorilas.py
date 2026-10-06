@@ -8,6 +8,7 @@ import pygame
 import math
 import random
 import sys
+import os
 
 # ========================================================
 #   CONSTANTS
@@ -154,8 +155,17 @@ def draw_centered(surface, font, text, y, color=TEXT_COLOR):
     surface.blit(img, img.get_rect(center=(WIDTH // 2, y)))
 
 # ========================================================
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
+# ========================================================
 class Game:
     def __init__(self):
+        self.sonidos = Sonidos()
         self.scores = [0, 0]
         self.round = 1
         self.new_round()
@@ -207,10 +217,15 @@ class Game:
         text = self.fields[self.current][idx]
 
         if event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
+            self.sonidos.reproducir("key")
             self.submit(idx)
+        
         elif event.key == pygame.K_BACKSPACE:
+            self.sonidos.reproducir("numkey")
             self.fields[self.current][idx] = text[:-1]
+        
         elif len(event.unicode) == 1 and event.unicode in "0123456789" and len(text) < 3:
+            self.sonidos.reproducir("numkey")
             self.fields[self.current][idx] = text + event.unicode
 
     # ------------------------------------------------
@@ -393,6 +408,41 @@ class Game:
             draw_centered(surface, big_font, f"¡Jugador {self.round_winner + 1} gana la partida!", HEIGHT // 2 - 50)
             draw_centered(surface, font, f"Marcador final: {self.scores[0]} - {self.scores[1]}", HEIGHT // 2)
             draw_centered(surface, font, "Espacio para jugar de nuevo", HEIGHT // 2 + 35)
+
+# ====================================================================================
+class Sonidos:
+    """Funcion constructora"""
+    def __init__(self):
+        pygame.mixer.init()
+        self.sonidos = self.cargar_sonidos()
+    
+    # -------------------------------------------------------------------------
+    def cargar_sonidos(self):
+        """Cargar todos los sonidos en un diccionario."""
+        return {
+            "aplausos": self.cargar_sonido(resource_path("audio/aplausoseagle.mp3"), 0.6),
+            "fireworks": self.cargar_sonido(resource_path("audio/fireworks.mp3"), 0.5),
+            "head-shot": self.cargar_sonido(resource_path("audio/head-shot.mp3"), 0.7),
+            "key": self.cargar_sonido(resource_path("audio/key.wav"), 0.8),
+            "numkey": self.cargar_sonido(resource_path("audio/numkey.wav"), 0.8),
+            "explosion": self.cargar_sonido(resource_path("audio/sonido-explo-granada.mp3"), 0.7)
+        }
+    
+    # -------------------------------------------------------------------------
+    def cargar_sonido(self, ruta, volumen=1.0):
+        """Carga un sonido específico con el volumen indicado."""
+        sonido = pygame.mixer.Sound(ruta)
+        sonido.set_volume(volumen)
+        return sonido
+    
+    # -------------------------------------------------------------------------
+    def reproducir(self, nombre, duracion=None):
+        """Reproduce un sonido si está en el diccionario."""
+        if nombre in self.sonidos:
+            if duracion == None:
+                self.sonidos[nombre].play()
+            else:
+                self.sonidos[nombre].play(maxtime=duracion)
 
 # ========================================================
 #   MAIN FUNCTION
